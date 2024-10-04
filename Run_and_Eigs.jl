@@ -6,7 +6,7 @@ using SparseArrays #Necessário para poder ler sparse matrices do jld
 using JLD2 #NPZ do Julia
 using FileIO
 using LinearAlgebra
-
+using Random 
 include("Functions.jl")
 
 
@@ -17,13 +17,13 @@ include("Functions.jl")
 # r = parse(Int64, ARGS[2]) #tBLG approximant 
 # P_QP = parse(Int64, ARGS[3]) #Periodic or quasiperiodic
 # nev = parse(Int64, ARGS[4]) #Number of states in Arpack
-
+# RandStack = parse(Int64, Args[5]) #Random Stacking or not
 m = 10
 r = 1
 P_QP = 1
 nev = 10
 
-#Constantes da geometria
+#Geometry Constants
 a0 = 2.46 
 d_perp = 3.35 
 d_cc = 1.42 
@@ -48,16 +48,23 @@ if P_QP == 1
     R = L_supercell * sqrt(3) / 4 #Biggest disk inside unit cell
 else
     t1_P, t2_P = moire_vectors(a1,a2,30,1) #Best approximant to the magic angle.
-    L_moire = normm(t1_P)
+    L_moire = norm(t1_P)
     R = round(L_supercell / L_moire) * sqrt(3) / 4
 end
 
+if RandStack == 1
+    n1 = rand()
+    n2 = rand()
+else
+    n1 = 0
+    n2 = 0
+end
 #Quantica SETUP
 
 OrbA1 = sublat((0.0,0.0),name=:A1)
 OrbB1 = sublat((1/3 * (a1[1]+a2[1]),1/3 * (a1[2]+a2[2])),name=:B1)   
 
-δ_stacking = -1/3 .* (a1 .+ a2) #AB Stacking # + Shift Vector .
+δ_stacking = -1/3 .* (a1 .+ a2) + n1 .* a1 + n2 .* a2 #AB Stacking # + Shift Vector .
 OrbA2 = sublat((δ_stacking[1],δ_stacking[2]),name=:A2)
 OrbB2 = sublat((δ_stacking[1]+1/3 * (a1[1]+a2[1]),δ_stacking[2] + 1/3 *(a1[2]+a2[2])),name=:B2)
 

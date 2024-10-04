@@ -2,7 +2,7 @@
 
 using FFTW
 
-function MoireVectors(a1,a2,m,r)
+function moire_vectors(a1,a2,m,r)
     if gcd(r,3) == 1
         t1 = m .* a1 .+ (m+r) .* a2
         t2 = -(m+r) .* a1 .+ (2*m+r) .* a2
@@ -13,16 +13,15 @@ function MoireVectors(a1,a2,m,r)
     return t1,t2
 end
 
-function MoireAngle(m,r)
+function moire_angle(m,r)
     return acos((3*m^2 + 3*m*r + 0.5*r^2)/(3*m^2 + 3*m*r + r^2))
 end
 
-function ResultsotationMatrix(θ)
+function rotationMatrix(θ)
     return SA[cos(θ) -sin(θ); sin(θ) cos(θ)]
 end
 
-function HoppingModulation()
-function HoppingPerp(dr, d_perp , d, δ , t , t_perp )
+function t_perp_dist(dr, d_perp , d, δ , t , t_perp )
     term1 = (d_perp^2 / (norm(dr)^2 + d_perp^2)) * t_perp * exp((d_perp - sqrt(norm(dr)^2+d_perp^2)) / δ)
     term2 = norm(dr)^2 / (norm(dr)^2 + d_perp^2) * (-t) * exp((d - sqrt(norm(dr)^2+d_perp^2)) / δ)
     return term1 + term2
@@ -43,7 +42,7 @@ function ChargeRatio(Es, Vecs, r_max,sites1, sites2)
     return Result
 end
 
-function LdosBins(Energies, EigenValues, Vectors, R_Max,sites)
+function LDOS_Bins(Energies, EigenValues, Vectors, R_Max,sites)
   Results =  zeros(Float64,length(Energies))
     for i in eachindex(EigenValues)
         if Energies[1] <= EigenValues[i] <= Energies[end]
@@ -59,7 +58,7 @@ function LdosBins(Energies, EigenValues, Vectors, R_Max,sites)
     return Results ./ (length(sites) * (Energies[2] - Energies[1])) #Normalized by bin and number of sites
 end
 
-function ComputeIpr(Es,Vecs,sites,R_Max)
+function IPR(Es,Vecs,sites,R_Max)
     result = zeros(Float64, length(Es))
     Condition = (norm.(sites) .<= R_Max)
     for i in eachindex(Es)
@@ -68,7 +67,7 @@ function ComputeIpr(Es,Vecs,sites,R_Max)
     return 
 end
 
-function FindFirstOrbB(sites1,d_cc)
+function find_first_OrbB(sites1,d_cc)
     N = length(sites1)
     N_teste = Int64(floor(N/2))
     for i in N_teste-100:N_teste+100
@@ -85,7 +84,7 @@ end
 
 
 
-function SortVecsFFT(nev, L_F ,sites1, δ_F, Vecs, inverse,NB)
+function Sort_Vecs_and_FFT(nev, L_F ,sites1, δ_F, Vecs, inverse,NB)
 
     Vectors2D_Rhombus_OrbA = zeros(Complex{Float64}, nev, Int64(L_F),Int64(L_F))
     Vectors2D_Rhombus_OrbB = zeros(Complex{Float64}, nev, Int64(L_F),Int64(L_F))
@@ -118,7 +117,7 @@ function SortVecsFFT(nev, L_F ,sites1, δ_F, Vecs, inverse,NB)
     return Psi_KA, Psi_KB
 end
 
-function ComputeIprk(Psi_KA, Psi_KB, EigenValues)
+function Compute_IPRK(Psi_KA, Psi_KB, EigenValues)
 
     resultado = zeros(Float64, length(EigenValues)) 
     for i in eachindex(resultado)
