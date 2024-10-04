@@ -22,6 +22,7 @@ function ResultsotationMatrix(θ)
 end
 
 function HoppingModulation()
+end
 function HoppingPerp(dr, d_perp , d, δ , t , t_perp )
     term1 = (d_perp^2 / (norm(dr)^2 + d_perp^2)) * t_perp * exp((d_perp - sqrt(norm(dr)^2+d_perp^2)) / δ)
     term2 = norm(dr)^2 / (norm(dr)^2 + d_perp^2) * (-t) * exp((d - sqrt(norm(dr)^2+d_perp^2)) / δ)
