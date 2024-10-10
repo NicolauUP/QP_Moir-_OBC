@@ -13,15 +13,12 @@ include("Functions.jl")
 
 #INPUTS
 
-# m = parse(Int64, ARGS[1]) #tBLG approximant
-# r = parse(Int64, ARGS[2]) #tBLG approximant 
-# P_QP = parse(Int64, ARGS[3]) #Periodic or quasiperiodic
-# nev = parse(Int64, ARGS[4]) #Number of states in Arpack
-# RandStack = parse(Int64, Args[5]) #Random Stacking or not
-m = 10
-r = 1
-P_QP = 1
-nev = 10
+m = parse(Int64, ARGS[1]) #tBLG approximant
+r = parse(Int64, ARGS[2]) #tBLG approximant 
+P_QP = parse(Int64, ARGS[3]) #Periodic or quasiperiodic
+nev = parse(Int64, ARGS[4]) #Number of states in Arpack
+RandStack = parse(Int64, Args[5]) #Random Stacking or not
+
 
 #Geometry Constants
 a0 = 2.46 
@@ -32,7 +29,7 @@ d_cc = 1.42
 
 #Hamiltonian parameters
 t = 2.7 #eV
-t_perp = 1.9  #eV
+t_perp = 0.48  #eV
 #Honeycomb lattice vectors
 a1 = a0 .* SA[1/2,sqrt(3)/2] #Static array de float64 
 a2 = a0 .* SA[-1/2, sqrt(3)/2] #Static Array de Float64
@@ -40,14 +37,14 @@ a2 = a0 .* SA[-1/2, sqrt(3)/2] #Static Array de Float64
 #tBLG periodic approximants
 
 
-t1,  t2 = moire_vectors(a1,a2,m,r)
+t1,  t2 = MoireVectors(a1,a2,m,r)
 L_supercell = norm(t1)
 
-θ = moire_angle(m,r)
+θ = MoireAngle(m,r)
 if P_QP == 1
     R = L_supercell * sqrt(3) / 4 #Biggest disk inside unit cell
 else
-    t1_P, t2_P = moire_vectors(a1,a2,30,1) #Best approximant to the magic angle.
+    t1_P, t2_P = MoireVectors(a1,a2,30,1) #Best approximant to the magic angle.
     L_moire = norm(t1_P)
     R = round(L_supercell / L_moire) * sqrt(3) / 4
 end
@@ -67,10 +64,11 @@ OrbB1 = sublat((1/3 * (a1[1]+a2[1]),1/3 * (a1[2]+a2[2])),name=:B1)
 δ_stacking = -1/3 .* (a1 .+ a2) + n1 .* a1 + n2 .* a2 #AB Stacking # + Shift Vector .
 OrbA2 = sublat((δ_stacking[1],δ_stacking[2]),name=:A2)
 OrbB2 = sublat((δ_stacking[1]+1/3 * (a1[1]+a2[1]),δ_stacking[2] + 1/3 *(a1[2]+a2[2])),name=:B2)
-
 Layer1_UC = lattice(OrbA1, OrbB1, bravais = (a1, a2),dim=2)
 Layer2_UC = lattice(OrbA2, OrbB2, bravais = (a1, a2),dim=2)
-Layer2_UC = transform(Layer2_UC, r -> rotationMatrix(θ) * r)
+
+
+Layer2_UC = transform(Layer2_UC, r -> RotationMatrix(θ) * r)
 
 Layer1 = supercell(Layer1_UC, region = r -> 0 <= norm(r) <= R)
 Layer2 = supercell(Layer2_UC, region = r -> 0 <= norm(r) <= R)
@@ -80,8 +78,7 @@ model_graphene = hopping(-t)
 h11 = hamiltonian(Layer1, model_graphene)
 h22 = hamiltonian(Layer2, model_graphene)
 
-
-model_inter12 = hopping((r,dr) -> t_perp_dist(dr, d_perp , d_cc, δ , t , t_perp ),range = Λ)
+model_inter12 = hopping((r,dr) -> HoppingPerp(dr, d_perp , d_cc, δ , t , t_perp ),range = Λ)
 
 
 H = combine(h11, h22, coupling = model_inter12)
@@ -93,10 +90,8 @@ H = combine(h11, h22, coupling = model_inter12)
 println(" ******* EigenDecomposition Started ******")
 
 σ_ARPACK = 0.0135 #Center of the FlatBand
-Vals, Vecs = eigs(H(()), nev=nev, maxiter=1000, tol=1e-4, sigma=σ_ARPACK)
+Vals, Vecs = eigs((H(())), nev=nev, maxiter=1000, tol=1e-4, sigma=σ_ARPACK)
 Es = real(Vals)
-
-
 #Sort Eigenvalues and Eigenvectors 
 
 sorted_indices = sortperm(Es)
@@ -120,30 +115,29 @@ end
 sites_Com = [sites1; sites2] 
 
 Energies_DOS = LinRange(0.004*2.7,0.006*2.7, Int64(round((0.002*2.7) / 0.0001)))
-DOS_Total = LDOS_Bins(Energies_DOS, Es, Vecs, R,sites_Com)
-DOS_Bulk = LDOS_Bins(Energies_DOS, Es, Vecs, 0.8*R,sites_Com)
+DOS_Total = LdosBins(Energies_DOS, Es, Vecs, R,sites_Com)
+DOS_Bulk = LdosBins(Energies_DOS, Es, Vecs, 0.8*R,sites_Com)
 
     
-#IPR
-IPR_Bulk = IPR(Es,Vecs,sites_Com,0.8*R)
-IPR_Total = IPR(Es,Vecs,sites_Com,R)
+IPR_Bulk = ComputeIpr(Es,Vecs,sites_Com,0.8*R)
+IPR_Total = ComputeIpr(Es,Vecs,sites_Com,R)
 
 
 
 
 #Calcular Rhombus e FFT
-L_F = Int64(round(sqrt(length(sites1)/2)))
+L_F = Int64(floor(sqrt(length(sites1))))
 InvA = [a1[1] a2[1]; a2[2] a2[2]] ^-1
 δ_F = -0.5 * L_F .* (a1 .+ a2)
 
 #Implement Find Index of First B 
-indexB1 = find_first_OrbB(sites1,d_cc)
-Psi_KA, Psi_KB = Sort_Vecs_and_FFT(nev, L_F, sites1,δ_F, Vecs,InvA,indexB1) # Falta calcular delta, inverse e L_rhombus
+indexB1 = FindFirstOrbB(sites1,d_cc)
+Psi_KA, Psi_KB = SortVecsFFT(nev, L_F, sites1,δ_F, Vecs,InvA,indexB1) # Falta calcular delta, inverse e L_rhombus
 
 
 
 #Calculate IPR_K,
-IPR_K = Compute_IPRK(Psi_KA, Psi_KB, Es)
+IPR_K = ComputeIprk(Psi_KA, Psi_KB, Es)
 
 
 save("TBG_Results_m=$(m)_r=$(r)_PQP=$(P_QP)_nev=$(nev)_σA=$(σ_ARPACK).jld2",

@@ -17,12 +17,17 @@ function MoireAngle(m,r)
     return acos((3*m^2 + 3*m*r + 0.5*r^2)/(3*m^2 + 3*m*r + r^2))
 end
 
-function ResultsotationMatrix(θ)
+function RotationMatrix(θ)
     return SA[cos(θ) -sin(θ); sin(θ) cos(θ)]
 end
 
-function HoppingModulation()
+function HoppingModulation(r,R_max,width,hopping)
+    return hopping * 0.5 * (tanh((norm(r) + R_max) / width) - (tanh((norm(r) - R_max) / width)))
 end
+
+# function MassModulation(r,R_max,width,value)
+#     return value * (1 )
+# end
 function HoppingPerp(dr, d_perp , d, δ , t , t_perp )
     term1 = (d_perp^2 / (norm(dr)^2 + d_perp^2)) * t_perp * exp((d_perp - sqrt(norm(dr)^2+d_perp^2)) / δ)
     term2 = norm(dr)^2 / (norm(dr)^2 + d_perp^2) * (-t) * exp((d - sqrt(norm(dr)^2+d_perp^2)) / δ)
@@ -64,9 +69,9 @@ function ComputeIpr(Es,Vecs,sites,R_Max)
     result = zeros(Float64, length(Es))
     Condition = (norm.(sites) .<= R_Max)
     for i in eachindex(Es)
-        result[i] = sum(abs2.(Vecs[1:end,i]).^2 .* Condition) / (sum(abs2.(Vecs[1:end,i]) .* Condition)).^2
+        result[i] = sum(abs.(Vecs[1:end,i]).^4 .* Condition) / (sum(abs2.(Vecs[1:end,i]) .* Condition).^2)
     end
-    return 
+    return result
 end
 
 function FindFirstOrbB(sites1,d_cc)
@@ -123,7 +128,7 @@ function ComputeIprk(Psi_KA, Psi_KB, EigenValues)
 
     resultado = zeros(Float64, length(EigenValues)) 
     for i in eachindex(resultado)
-        resultado[i] = sum(abs2.(Psi_KA[i,1:end,1:end]).^2 +abs2.(Psi_KB[i,1:end,1:end]).^2 ) /(sum(abs2.(Psi_KA[i,1:end,1:end]) + abs2.(Psi_KB[i,1:end,1:end]) )).^2
+        resultado[i] = sum(abs.(Psi_KA[i,1:end,1:end]).^4 +abs.(Psi_KB[i,1:end,1:end]).^4) /(sum(abs2.(Psi_KA[i,1:end,1:end]) + abs2.(Psi_KB[i,1:end,1:end]) )).^2
     end
 return resultado
 end
