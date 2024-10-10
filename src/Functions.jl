@@ -1,5 +1,3 @@
-
-
 using FFTW
 
 function MoireVectors(a1,a2,m,r)
