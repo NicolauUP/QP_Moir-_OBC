@@ -132,7 +132,7 @@ DOS_Total = LdosBins(Energies_DOS, Es, Vecs, R,sites_Com)
 DOS_Bulk = LdosBins(Energies_DOS, Es, Vecs, 0.8*R,sites_Com)
 
     
-IPR_Bulk = ComputeIpr(Es,Vecs,sites_Com,0.8*R)
+IPR_Bulk =  ComputeIpr(Es,Vecs,sites_Com,0.8*R)
 IPR_Total = ComputeIpr(Es,Vecs,sites_Com,R)
 
 
