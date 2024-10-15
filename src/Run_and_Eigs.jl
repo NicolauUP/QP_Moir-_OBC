@@ -73,11 +73,11 @@ Layer2_UC = transform(Layer2_UC, r -> RotationMatrix(θ) * r)
 Layer1 = supercell(Layer1_UC, region = r -> 0 <= norm(r) <= R)
 Layer2 = supercell(Layer2_UC, region = r -> 0 <= norm(r) <= R)
 
-model_graphene1 = hopping((r,dr) -> HoppingModulation(r,R-4*a0,3*a0,t),range=d_cc+1e-2) + 
+model_graphene1 = hopping((r,dr) -> HoppingModulation(r,R-4*a0,3*a0,-t),range=d_cc+1e-2) + 
                  onsite(r ->  MassModulation(r,R-4*a0,3*a0,20), sublats=:A1)  +
                  onsite(r -> MassModulation(r,R-4*a0,3*a0,-20), sublats=:B1)
 
-model_graphene2 = hopping((r,dr) -> HoppingModulation(r,R-4*a0,3*a0,t),range=d_cc+1e-2) + 
+model_graphene2 = hopping((r,dr) -> HoppingModulation(r,R-4*a0,3*a0,-t),range=d_cc+1e-2) + 
                  onsite(r ->  MassModulation(r,R-4*a0,3*a0,20), sublats=:A2)  +
                  onsite(r -> MassModulation(r,R-4*a0,3*a0,-20), sublats=:B2)
 
