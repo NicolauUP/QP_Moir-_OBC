@@ -93,10 +93,17 @@ H = combine(h11, h22, coupling = model_inter12)
 
 #Obtain Eigenvalues and EigenVectors
 
-println(" ******* EigenDecomposition Started ******")
+println("EigenDecomposition Started")
+println("Number of states to find: $nev")
+println("Sigma for ARPACK: 0.0135")
+using Dates
 
 σ_ARPACK = 0.0135 #Center of the FlatBand
+
+start_time = time()
 Vals, Vecs = eigs((H(())), nev=nev, maxiter=1000, tol=1e-4, sigma=σ_ARPACK)
+end_time = time()
+
 Es = real(Vals)
 #Sort Eigenvalues and Eigenvectors 
 
@@ -104,8 +111,8 @@ sorted_indices = sortperm(Es)
 Es = Es[sorted_indices]
 Vecs = Vecs[1:end, sorted_indices]
 
-
-println(" ******* EigenDecomposition Finised ******")
+println("EigenDecomposition Finished")
+println("Time taken for Eigendecomposition: ", end_time - start_time)
 
 #Charge distribution
 
