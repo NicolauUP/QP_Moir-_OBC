@@ -64,7 +64,7 @@ function LDOS_regionCUDA(VecsCUDA, EsCUDA, condition, EnergiesDOS, σDos,)
     σ2_inv = 1 / (2 * σDos^2)
     sqrt_2pi_σ2 = sqrt(2 * π * σDos^2)
 
-    VecsCuda = abs2.(VecsCuda) #Verify it his generates a new matrix 
+    VecsCUDA = abs2.(VecsCUDA) #Verify it his generates a new matrix 
     nsInside = sum(condition)
     insideRsCuda = CuArray(condition)
     fE = zeros(Float64, length(EsCUDA),length(EnergiesDOS))
@@ -75,7 +75,7 @@ function LDOS_regionCUDA(VecsCUDA, EsCUDA, condition, EnergiesDOS, σDos,)
         end
     end
     fE_CUDA = CuArray(fE)
-    return Array(insideRsCuda' *( VecsCuda * fE_CUDA)) ./ (nsInside * sqrt_2pi_σ2)
+    return Array(insideRsCuda' *( VecsCUDA * fE_CUDA)) ./ (nsInside * sqrt_2pi_σ2)
     end
 function ChargeRatio(Es, Vecs, r_max,sites1, sites2)
     Result = zeros(Float64, length(Es))

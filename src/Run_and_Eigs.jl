@@ -102,14 +102,18 @@ H = combine(h11, h22, coupling = model_inter12)
 println("EigenDecomposition Started")
 println("Number of states to find: $nev")
 println("Sigma for ARPACK: 0.0135")
-using Dates
+
+
+
+timings = []
+
 
 σ_ARPACK = 0.0135 #Center of the FlatBand
 
 start_time = time()
-Vals, Vecs = eigs((H(())), nev=nev, maxiter=1000, tol=1e-4, sigma=σ_ARPACK)
+Vals, Vecs = eigs((H(())), nev=nev, maxiter=2000, tol=0.004*2.7/100, sigma=σ_ARPACK) #Tolerance being 1% of the narrow band width
 end_time = time()
-
+push!(timings, end_time - start_time)
 Es = real(Vals)
 #Sort Eigenvalues and Eigenvectors 
 
@@ -145,8 +149,32 @@ Energies_DOS = LinRange(0.004*2.7,0.006*2.7, Int64(round((0.002*2.7) / 0.0001)))
 CondTotal = norm.(sites_Com) .<= R
 CondBulk = norm.(sites_Com) .<= 0.7*R
 
-DosTotal = LDOS_regionCUDA(VecsCuda ,EsCUDA , CondTotal,Energies_DOS, σDos)
-DosBulk = LDOS_regionCUDA(VecsCuda ,EsCUDA , CondBulk,Energies_DOS, σDos)
+
+# Time DosTotal calculation
+start_time = time()
+DosTotal = LDOS_regionCUDA(VecsCUDA, EsCUDA, CondTotal, Energies_DOS, σDos)
+end_time = time()
+push!(timings, end_time - start_time)
+
+# Time DosBulk calculation
+start_time = time()
+DosBulk = LDOS_regionCUDA(VecsCUDA, EsCUDA, CondBulk, Energies_DOS, σDos)
+end_time = time()
+push!(timings, end_time - start_time)
+
+
+# Time IPR_Bulk calculation
+start_time = time()
+IPR_Bulk = ComputeIpr(Es,Vecs,sites_Com,0.8*R)
+end_time = time()
+push!(timings, end_time - start_time)
+
+# Time IPR_Total calculation
+start_time = time()
+IPR_Total = ComputeIpr(Es,Vecs,sites_Com,R)
+end_time = time()
+push!(timings, end_time - start_time)
+
 
 
     
@@ -176,9 +204,12 @@ save("TBG_Results_m=$(m)_r=$(r)_PQP=$(P_QP)_nev=$(nev)_σA=$(σ_ARPACK).jld2",
     "Rs_Charges",rs,
     "Charge",Resultado_Carga,
     "EnergiesDOS",Energies_DOS,
-    "DOS_Total",DOS_Total,
-    "DOS_Bulk",DOS_Bulk,
+    "DosTotal",DosTotal,
+    "DosBulk",DosBulk,
     "IPR_Bulk",IPR_Bulk,
     "IPR_Total",IPR_Total,
     "L_F",L_F,
-    "IPR_K",IPR_K)
+    "IPR_K",IPR_K,
+    "Timings",timings,
+    "TimingDescriptions",["Eigendecomposition","DosTotal","DosBulk","IPR_Bulk","IPR_Total"]
+    )
