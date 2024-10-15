@@ -29,7 +29,7 @@ end
 function HoppingPerp(r,dr, d_perp , d, δ , t , t_perp, RMax, width)
     term1 = (d_perp^2 / (norm(dr)^2 + d_perp^2)) * t_perp * exp((d_perp - sqrt(norm(dr)^2+d_perp^2)) / δ)
     term2 = norm(dr)^2 / (norm(dr)^2 + d_perp^2) * (-t) * exp((d - sqrt(norm(dr)^2+d_perp^2)) / δ)
-    return (term1 + term2) * HoppingModulation(r,RMax,width,1)
+    return (term1 + term2)#* HoppingModulation(r,RMax,width,1)
 end
 
 
@@ -39,10 +39,10 @@ function ChargeRatio(Es, Vecs, r_max,sites1, sites2)
     Condition1 = (norm.(sites1) .<= r_max)
     Condition2 = (norm.(sites2) .<= r_max)
     Condition = [Condition1; Condition2]
-    Fraction_Of_Sites = sum(Condition) / length(Condition)
+    #Fraction_Of_Sites = sum(Condition) / length(Condition)
 
     for i in 1:length(Es)
-        Result[i] = real(sum(abs2.(Vecs[1:end, i]) .* Condition) / Fraction_Of_Sites)
+        Result[i] = real(sum(abs2.(Vecs[1:end, i]) .* Condition))# / Fraction_Of_Sites)
     end
     return Result
 end
