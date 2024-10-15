@@ -13,12 +13,17 @@ include("Functions.jl")
 
 #INPUTS
 
-m = parse(Int64, ARGS[1]) #tBLG approximant
-r = parse(Int64, ARGS[2]) #tBLG approximant 
-P_QP = parse(Int64, ARGS[3]) #Periodic or quasiperiodic
-nev = parse(Int64, ARGS[4]) #Number of states in Arpack
-RandStack = parse(Int64, ARGS[5]) #Random Stacking or not
+#m = parse(Int64, ARGS[1]) #tBLG approximant
+#r = parse(Int64, ARGS[2]) #tBLG approximant 
+#P_QP = parse(Int64, ARGS[3]) #Periodic or quasiperiodic
+#nev = parse(Int64, ARGS[4]) #Number of states in Arpack
+#RandStack = parse(Int64, ARGS[5]) #Random Stacking or not
 
+m = 25
+r = 1
+P_QP = 1
+nev = 10
+RandStack = 0
 
 #Geometry Constants
 a0 = 2.46 
@@ -73,11 +78,11 @@ Layer2_UC = transform(Layer2_UC, r -> RotationMatrix(θ) * r)
 Layer1 = supercell(Layer1_UC, region = r -> 0 <= norm(r) <= R)
 Layer2 = supercell(Layer2_UC, region = r -> 0 <= norm(r) <= R)
 
-model_graphene1 = hopping((r,dr) -> HoppingModulation(r,R-4*a0,3*a0,t),range=d_cc+1e-2) + 
+model_graphene1 = hopping((r,dr) -> HoppingModulation(r,R-4*a0,3*a0,-t),range=d_cc+1e-2) + 
                  onsite(r ->  MassModulation(r,R-4*a0,3*a0,20), sublats=:A1)  +
                  onsite(r -> MassModulation(r,R-4*a0,3*a0,-20), sublats=:B1)
 
-model_graphene2 = hopping((r,dr) -> HoppingModulation(r,R-4*a0,3*a0,t),range=d_cc+1e-2) + 
+model_graphene2 = hopping((r,dr) -> HoppingModulation(r,R-4*a0,3*a0,-t),range=d_cc+1e-2) + 
                  onsite(r ->  MassModulation(r,R-4*a0,3*a0,20), sublats=:A2)  +
                  onsite(r -> MassModulation(r,R-4*a0,3*a0,-20), sublats=:B2)
 
@@ -101,7 +106,7 @@ using Dates
 σ_ARPACK = 0.0135 #Center of the FlatBand
 
 start_time = time()
-Vals, Vecs = eigs((H(())), nev=nev, maxiter=1000, tol=1e-4, sigma=σ_ARPACK)
+Vals, Vecs = eigs((h11(())), nev=nev, maxiter=1000, tol=1e-4, sigma=σ_ARPACK)
 end_time = time()
 
 Es = real(Vals)
@@ -113,6 +118,8 @@ Vecs = Vecs[1:end, sorted_indices]
 
 println("EigenDecomposition Finished")
 println("Time taken for Eigendecomposition: ", end_time - start_time)
+
+
 
 #Charge distribution
 
