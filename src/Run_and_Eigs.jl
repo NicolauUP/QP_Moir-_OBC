@@ -106,7 +106,7 @@ using Dates
 σ_ARPACK = 0.0135 #Center of the FlatBand
 
 start_time = time()
-Vals, Vecs = eigs((h11(())), nev=nev, maxiter=1000, tol=1e-4, sigma=σ_ARPACK)
+Vals, Vecs = eigs((H(())), nev=nev, maxiter=1000, tol=1e-4, sigma=σ_ARPACK)
 end_time = time()
 
 Es = real(Vals)
@@ -119,7 +119,7 @@ Vecs = Vecs[1:end, sorted_indices]
 println("EigenDecomposition Finished")
 println("Time taken for Eigendecomposition: ", end_time - start_time)
 
-
+println("Es : $(Es)")
 
 #Charge distribution
 
