@@ -81,10 +81,10 @@ model_graphene = hopping((r,dr) -> HoppingModulation(r,R-4*a0,3*a0,t),range=d_cc
 h11 = hamiltonian(Layer1, model_graphene)
 h22 = hamiltonian(Layer2, model_graphene)
 
-model_inter12 = hopping((r,dr) -> HoppingPerp(dr, d_perp , d_cc, δ , t , t_perp ),range = Λ)
+model_inter12 = hopping((r,dr) -> HoppingPerp(r,dr, d_perp , d, δ , t , t_perp, R-4*a0, 3*a0),range = Λ)
 
 
-H = combine(h11, h22, coupling = model_inter12)
+H = combine(h11, h22, coupling = model_inter12) 
 
 
 

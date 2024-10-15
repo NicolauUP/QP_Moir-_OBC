@@ -26,10 +26,10 @@ end
 function MassModulation(r,R_max,width,value)
     return value * (1 - 0.5 * (tanh((norm(r) + R_max) / width) - (tanh((norm(r) - R_max) / width))))
 end
-function HoppingPerp(dr, d_perp , d, δ , t , t_perp )
+function HoppingPerp(r,dr, d_perp , d, δ , t , t_perp, RMax, width)
     term1 = (d_perp^2 / (norm(dr)^2 + d_perp^2)) * t_perp * exp((d_perp - sqrt(norm(dr)^2+d_perp^2)) / δ)
     term2 = norm(dr)^2 / (norm(dr)^2 + d_perp^2) * (-t) * exp((d - sqrt(norm(dr)^2+d_perp^2)) / δ)
-    return term1 + term2
+    return (term1 + term2) * HoppingModulation(r,RMax,width,1)
 end
 
 
