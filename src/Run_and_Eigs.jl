@@ -2,8 +2,8 @@
 using StaticArrays 
 using Quantica
 using Arpack
-using SparseArrays #Necessário para poder ler sparse matrices do jld
-using JLD2 #NPZ do Julia
+using SparseArrays 
+using JLD2 
 using FileIO
 using LinearAlgebra
 using Random 
@@ -17,7 +17,7 @@ m = parse(Int64, ARGS[1]) #tBLG approximant
 r = parse(Int64, ARGS[2]) #tBLG approximant 
 P_QP = parse(Int64, ARGS[3]) #Periodic or quasiperiodic
 nev = parse(Int64, ARGS[4]) #Number of states in Arpack
-RandStack = parse(Int64, Args[5]) #Random Stacking or not
+RandStack = parse(Int64, ARGS[5]) #Random Stacking or not
 
 
 #Geometry Constants
@@ -73,15 +73,18 @@ Layer2_UC = transform(Layer2_UC, r -> RotationMatrix(θ) * r)
 Layer1 = supercell(Layer1_UC, region = r -> 0 <= norm(r) <= R)
 Layer2 = supercell(Layer2_UC, region = r -> 0 <= norm(r) <= R)
 
-model_graphene = hopping((r,dr) -> HoppingModulation(r,R-4*a0,3*a0,t),range=d_cc+1e-2)
-                +onsite(r -> onsitePot(r, R), sublats=:A) +
-                + onsite(r -> -onsitePot(r, R), sublats=:B)
+model_graphene1 = hopping((r,dr) -> HoppingModulation(r,R-4*a0,3*a0,t),range=d_cc+1e-2) + 
+                 onsite(r ->  MassModulation(r,R-4*a0,3*a0,20), sublats=:A1)  +
+                 onsite(r -> MassModulation(r,R-4*a0,3*a0,-20), sublats=:B1)
 
+model_graphene2 = hopping((r,dr) -> HoppingModulation(r,R-4*a0,3*a0,t),range=d_cc+1e-2) + 
+                 onsite(r ->  MassModulation(r,R-4*a0,3*a0,20), sublats=:A2)  +
+                 onsite(r -> MassModulation(r,R-4*a0,3*a0,-20), sublats=:B2)
 
-h11 = hamiltonian(Layer1, model_graphene)
-h22 = hamiltonian(Layer2, model_graphene)
+h11 = hamiltonian(Layer1, model_graphene1)
+h22 = hamiltonian(Layer2, model_graphene2)
 
-model_inter12 = hopping((r,dr) -> HoppingPerp(r,dr, d_perp , d, δ , t , t_perp, R-4*a0, 3*a0),range = Λ)
+model_inter12 = hopping((r,dr) -> HoppingPerp(r,dr, d_perp , d_cc, δ , t , t_perp, R-4*a0, 3*a0),range = Λ)
 
 
 H = combine(h11, h22, coupling = model_inter12) 
