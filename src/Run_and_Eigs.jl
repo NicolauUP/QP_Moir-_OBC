@@ -7,19 +7,25 @@ using JLD2
 using FileIO
 using LinearAlgebra
 using Random 
+using CUDA
+
 include("Functions.jl")
 
 
 
 #INPUTS
 
-m = parse(Int64, ARGS[1]) #tBLG approximant
-r = parse(Int64, ARGS[2]) #tBLG approximant 
-P_QP = parse(Int64, ARGS[3]) #Periodic or quasiperiodic
-nev = parse(Int64, ARGS[4]) #Number of states in Arpack
-RandStack = parse(Int64, ARGS[5]) #Random Stacking or not
+# m = parse(Int64, ARGS[1]) #tBLG approximant
+# r = parse(Int64, ARGS[2]) #tBLG approximant 
+# P_QP = parse(Int64, ARGS[3]) #Periodic or quasiperiodic
+# nev = parse(Int64, ARGS[4]) #Number of states in Arpack
+# RandStack = parse(Int64, ARGS[5]) #Random Stacking or not
 
-
+m = 29 
+r = 1
+P_QP = 1
+nev = 100
+RandStack = 0
 #Geometry Constants
 a0 = 2.46 
 d_perp = 3.35 
@@ -127,9 +133,21 @@ end
 # #Density of states
 sites_Com = [sites1; sites2] 
 
+
+
+EsCUDA = CuArray(Es)
+VecsCUDA = CuArray(Vecs)
 Energies_DOS = LinRange(0.004*2.7,0.006*2.7, Int64(round((0.002*2.7) / 0.0001)))
-DOS_Total = LdosBins(Energies_DOS, Es, Vecs, R,sites_Com)
-DOS_Bulk = LdosBins(Energies_DOS, Es, Vecs, 0.8*R,sites_Com)
+
+
+
+σDos = 1e-4
+CondTotal = norm.(sites_Com) .<= R
+CondBulk = norm.(sites_Com) .<= 0.7*R
+
+DosTotal = LDOS_regionCUDA(VecsCuda ,EsCUDA , CondTotal,Energies_DOS, σDos)
+DosBulk = LDOS_regionCUDA(VecsCuda ,EsCUDA , CondBulk,Energies_DOS, σDos)
+
 
     
 IPR_Bulk = ComputeIpr(Es,Vecs,sites_Com,0.8*R)

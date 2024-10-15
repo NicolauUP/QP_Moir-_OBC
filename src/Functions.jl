@@ -1,5 +1,5 @@
 using FFTW
-
+using CUDA
 function MoireVectors(a1,a2,m,r)
     if gcd(r,3) == 1
         t1 = m .* a1 .+ (m+r) .* a2
@@ -32,7 +32,51 @@ function HoppingPerp(r,dr, d_perp , d, δ , t , t_perp, RMax, width)
     return (term1 + term2)#* HoppingModulation(r,RMax,width,1)
 end
 
+function LDOS_region(vectors, eigenvalues, sites1, sites2, energias, Rs, σ, center)
+    result = zeros(Complex{Float64}, length(energias))
+    
+    condition1 = norm.(sites1 ) .<= Rs
+    condition2 = norm.(sites2 ) .<= Rs
+    
+    nsInside = sum(condition1) + sum(condition2)
 
+    for i in eachindex(energias)
+        factor = exp.(-(energias[i] .- eigenvalues).^2 / (2*σ^2))
+        
+        for r in eachindex(sites1)
+            if condition1[r]
+                result[i] += sum(abs2.(vectors[r, :]) .* factor)
+            end
+        end
+
+        for r in eachindex(sites2)
+            if condition2
+                result[i] += sum(abs2.(vectors[r + length(sites1), :]) .* factor)
+            end
+        end
+    end
+    
+    return result ./ (nsInside * sqrt(2 * π * σ^2))
+end
+
+function LDOS_regionCUDA(VecsCUDA, EsCUDA, condition, EnergiesDOS, σDos,)
+    nsInside = 0
+    σ2_inv = 1 / (2 * σDos^2)
+    sqrt_2pi_σ2 = sqrt(2 * π * σDos^2)
+
+    VecsCuda = abs2.(VecsCuda) #Verify it his generates a new matrix 
+    nsInside = sum(condition)
+    insideRsCuda = CuArray(condition)
+    fE = zeros(Float64, length(EsCUDA),length(EnergiesDOS))
+    es_cpu = Array(EsCUDA)
+    for i in eachindex(es_cpu)
+        for j in eachindex(EnergiesDOS)
+        fE[i,j] = exp(-((EnergiesDOS[j] - es_cpu[i])^2) * σ2_inv)
+        end
+    end
+    fE_CUDA = CuArray(fE)
+    return Array(insideRsCuda' *( VecsCuda * fE_CUDA)) ./ (nsInside * sqrt_2pi_σ2)
+    end
 function ChargeRatio(Es, Vecs, r_max,sites1, sites2)
     Result = zeros(Float64, length(Es))
 
