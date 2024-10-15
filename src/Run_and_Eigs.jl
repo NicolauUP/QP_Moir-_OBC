@@ -160,17 +160,6 @@ function main(m, r, P_QP, nev, RandStack,CompileFlag)
     TimingDescriptions = ["Eigendecomposition","DosTotal","DosBulk","IPR_Bulk","IPR_Total"]
 
     println(TimingDescriptions, timings)
-    
-end
-
-function compile()
-    m = 29 
-    r = 1
-    P_QP = 1
-    nev = 100
-    RandStack = 0
-    main(m, r, P_QP, nev, RandStack,true)
-end
     if !CompileFlag 
         save("TBG_Results_m=$(m)_r=$(r)_PQP=$(P_QP)_nev=$(nev)_σA=$(σ_ARPACK).jld2",
         "EigenValues",Es,
@@ -186,6 +175,17 @@ end
         "Timings",timings,
         "TimingDescriptions",TimingDescriptions)
     end
+end
+
+function compile()
+    m = 29 
+    r = 1
+    P_QP = 1
+    nev = 100
+    RandStack = 0
+    main(m, r, P_QP, nev, RandStack,true)
+end
+    
 
 compile()
 
