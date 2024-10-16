@@ -121,13 +121,13 @@ function main(m, r, P_QP, nev, RandStack,CompileFlag)
 
     # Time DosTotal calculation
     start_time = time()
-    DosTotal = LDOS_regionCUDA(VecsCUDA, EsCUDA, CondTotal, Energies_DOS, σDos)
+    DosTotal = LDOS_regionCPU(Vecs, Es, CondTotal, Energies_DOS, σDos)
     end_time = time()
     push!(timings, end_time - start_time)
 
     # Time DosBulk calculation
     start_time = time()
-    DosBulk = LDOS_regionCUDA(VecsCUDA, EsCUDA, CondBulk, Energies_DOS, σDos)
+    DosBulk = LDOS_regionCPU(Vecs, Es, CondBulk, Energies_DOS, σDos)
     end_time = time()
     push!(timings, end_time - start_time)
 
