@@ -109,8 +109,9 @@ function main(m, r, P_QP, nev, RandStack,CompileFlag)
     end
 
     #Density of states
-    sites_Com = [sites1; sites2] 
-
+    sites_Com = [sites1; sites2]
+    println("Size of the system: ", length(sites_Com))
+    
     EsCUDA = CuArray(Es)
     VecsCUDA = CuArray(Vecs)
     Energies_DOS = LinRange(0.004*2.7,0.006*2.7, Int64(round((0.002*2.7) / 0.0001)))
@@ -131,6 +132,7 @@ function main(m, r, P_QP, nev, RandStack,CompileFlag)
     end_time = time()
     push!(timings, end_time - start_time)
 
+    
     # Time IPR_Bulk calculation
     start_time = time()
     IPR_Bulk = ComputeIpr(Es,Vecs,sites_Com,0.8*R)
