@@ -1,5 +1,5 @@
 using FFTW
-using CUDA
+
 function MoireVectors(a1,a2,m,r)
     if gcd(r,3) == 1
         t1 = m .* a1 .+ (m+r) .* a2
@@ -29,7 +29,7 @@ end
 function HoppingPerp(r,dr, d_perp , d, δ , t , t_perp, RMax, width)
     term1 = (d_perp^2 / (norm(dr)^2 + d_perp^2)) * t_perp * exp((d_perp - sqrt(norm(dr)^2+d_perp^2)) / δ)
     term2 = norm(dr)^2 / (norm(dr)^2 + d_perp^2) * (-t) * exp((d - sqrt(norm(dr)^2+d_perp^2)) / δ)
-    return (term1 + term2)#* HoppingModulation(r,RMax,width,1)
+    return (term1 + term2)*HoppingModulation(r,RMax,width,1)
 end
 
 function LDOS_regionCPU(Vecs, Es, condition, EnergiesDOS, σDos,)
@@ -51,24 +51,24 @@ function LDOS_regionCPU(Vecs, Es, condition, EnergiesDOS, σDos,)
     return Array(condition' *( Vecs * fE)) ./ (nsInside * sqrt_2pi_σ2)
     end
 
-function LDOS_regionCUDA(VecsCUDA, EsCUDA, condition, EnergiesDOS, σDos,)
-    nsInside = 0
-    σ2_inv = 1 / (2 * σDos^2)
-    sqrt_2pi_σ2 = sqrt(2 * π * σDos^2)
+# function LDOS_regionCUDA(VecsCUDA, EsCUDA, condition, EnergiesDOS, σDos,)
+#     nsInside = 0
+#     σ2_inv = 1 / (2 * σDos^2)
+#     sqrt_2pi_σ2 = sqrt(2 * π * σDos^2)
 
-    VecsCUDA = abs2.(VecsCUDA) #Verify it his generates a new matrix 
-    nsInside = sum(condition)
-    insideRsCuda = CuArray(condition)
-    fE = zeros(Float64, length(EsCUDA),length(EnergiesDOS))
-    es_cpu = Array(EsCUDA)
-    for i in eachindex(es_cpu)
-        for j in eachindex(EnergiesDOS)
-        fE[i,j] = exp(-((EnergiesDOS[j] - es_cpu[i])^2) * σ2_inv)
-        end
-    end
-    fE_CUDA = CuArray(fE)
-    return Array(insideRsCuda' *( VecsCUDA * fE_CUDA)) ./ (nsInside * sqrt_2pi_σ2)
-    end
+#     VecsCUDA = abs2.(VecsCUDA) #Verify it his generates a new matrix 
+#     nsInside = sum(condition)
+#     insideRsCuda = CuArray(condition)
+#     fE = zeros(Float64, length(EsCUDA),length(EnergiesDOS))
+#     es_cpu = Array(EsCUDA)
+#     for i in eachindex(es_cpu)
+#         for j in eachindex(EnergiesDOS)
+#         fE[i,j] = exp(-((EnergiesDOS[j] - es_cpu[i])^2) * σ2_inv)
+#         end
+#     end
+#     fE_CUDA = CuArray(fE)
+#     return Array(insideRsCuda' *( VecsCUDA * fE_CUDA)) ./ (nsInside * sqrt_2pi_σ2)
+#     end
 function ChargeRatio(Es, Vecs, r_max,sites1, sites2)
     Result = zeros(Float64, length(Es))
 

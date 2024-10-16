@@ -6,7 +6,7 @@ using JLD2
 using FileIO
 using LinearAlgebra
 using Random 
-using CUDA
+
 
 include("Functions.jl")
 
@@ -35,9 +35,12 @@ function main(m, r, P_QP, nev, RandStack,CompileFlag)
     else
         t1_P, t2_P = MoireVectors(a1,a2,30,1) #Best approximant to the magic angle.
         L_moire = norm(t1_P)
-        R = round(L_supercell / L_moire) * sqrt(3) / 4
+        
+        R = round(L_supercell / L_moire ) * sqrt(3) / 4 * L_moire
+        
     end
-
+        
+    println("R=$(R) A")
     if RandStack == 1
         n1 = rand()
         n2 = rand()
@@ -112,11 +115,11 @@ function main(m, r, P_QP, nev, RandStack,CompileFlag)
     sites_Com = [sites1; sites2]
     println("Size of the system: ", length(sites_Com))
     
-    EsCUDA = CuArray(Es)
-    VecsCUDA = CuArray(Vecs)
+    #EsCUDA = CuArray(Es)
+    #VecsCUDA = CuArray(Vecs)
     Energies_DOS = LinRange(0.004*2.7,0.006*2.7, Int64(round((0.002*2.7) / 0.0001)))
 
-    σDos = 1e-4
+    σDos = 5e-5
     CondTotal = norm.(sites_Com) .<= R
     CondBulk = norm.(sites_Com) .<= 0.7*R
 
@@ -149,7 +152,7 @@ function main(m, r, P_QP, nev, RandStack,CompileFlag)
     IPR_Total = ComputeIpr(Es,Vecs,sites_Com,R)
 
     #Calcular Rhombus e FFT
-    L_F = Int64(floor(sqrt(length(sites1))))
+    L_F = Int64(floor(sqrt(length(sites1)))) #Será isto? Testar um rhombus mais pequeno! Pode estar a apanhar boundaries... isso devia deslocalizar mais.
     InvA = [a1[1] a2[1]; a2[2] a2[2]] ^-1
     δ_F = -0.5 * L_F .* (a1 .+ a2)
 
@@ -163,7 +166,7 @@ function main(m, r, P_QP, nev, RandStack,CompileFlag)
 
     println(TimingDescriptions, timings)
     if !CompileFlag 
-        save("TBG_Results_m=$(m)_r=$(r)_PQP=$(P_QP)_nev=$(nev)_σA=$(σ_ARPACK).jld2",
+        save("TBG_Results_m=$(m)_r=$(r)_PQP=$(P_QP)_nev=$(nev)_σA=$(σ_ARPACK),σD=$(σDos).jld2",
         "EigenValues",Es,
         "Rs_Charges",rs,
         "Charge",Resultado_Carga,
@@ -185,7 +188,7 @@ function compile()
     P_QP = 1
     nev = 100
     RandStack = 0
-    main(m, r, P_QP, nev, RandStack,true)
+    main(m, r, P_QP, nev, RandStack,true)   
 end
     
 
