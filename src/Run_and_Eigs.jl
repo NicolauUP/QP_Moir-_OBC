@@ -35,8 +35,8 @@ function main(m, r, P_QP, nev, RandStack,CompileFlag)
     else
         t1_P, t2_P = MoireVectors(a1,a2,30,1) #Best approximant to the magic angle.
         L_moire = norm(t1_P)
-        R = round(L_supercell / L_moire) * sqrt(3) / 4
-    end
+        R = round(L_supercell / L_moire ) * sqrt(3) / 4 * L_moire
+        end
 
     if RandStack == 1
         n1 = rand()
